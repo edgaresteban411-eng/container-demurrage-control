@@ -1,12 +1,13 @@
 {
-    'name': 'Control de Demoras de Contenedores',
+    'name': 'Container Demurrage Control',
     'version': '17.0.1.0.0',
-    'category': 'Operations/Logistics',
-    'summary': 'Módulo para el control, cálculo y liquidación de demoras de contenedores',
-    'author': 'Edgar E.',
-    'depends': ['base', 'account'],
-    'data': [],
+    'category': 'Operations',
+    'summary': 'Control and calculate container demurrage costs',
+    'depends': ['base', 'mail'],
+    'data': [
+        'security/ir.model.access.csv',
+        'views/demurrage_views.xml',
+    ],
     'installable': True,
     'application': True,
-    'license': 'LGPL-3',
 }

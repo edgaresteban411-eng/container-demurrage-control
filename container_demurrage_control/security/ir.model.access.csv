@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_demurrage_rate,access.demurrage.rate,model_demurrage_rate,base.group_user,1,1,1,1
+access_demurrage_tier,access.demurrage.tier,model_demurrage_rate_tier,base.group_user,1,1,1,1
+access_demurrage_partner_free_days,access.demurrage.partner.free.days,model_demurrage_partner_free_days,base.group_user,1,1,1,1
+access_demurrage_bl,access.demurrage.bl,model_demurrage_bl,base.group_user,1,1,1,1
+access_demurrage_container,access.demurrage.container,model_demurrage_container,base.group_user,1,1,1,1
