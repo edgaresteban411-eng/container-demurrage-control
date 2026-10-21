@@ -8,19 +8,19 @@ def validate_iso_6346(code):
     code = code.upper()
     if code[3] not in ['U', 'J', 'Z']:
         return False
-
+    
     char_map = {
         'A': 10, 'B': 12, 'C': 13, 'D': 14, 'E': 15, 'F': 16, 'G': 17, 'H': 18, 'I': 19,
         'J': 20, 'K': 21, 'L': 23, 'M': 24, 'N': 25, 'O': 26, 'P': 27, 'Q': 28, 'R': 29,
         'S': 30, 'T': 31, 'U': 32, 'V': 34, 'W': 35, 'X': 36, 'Y': 37, 'Z': 38
     }
-
+    
     total = 0
     for i in range(10):
         char = code[i]
         val = int(char) if char.isdigit() else char_map.get(char, 0)
         total += val * (2 ** i)
-
+        
     check_digit = (total % 11) % 10
     return check_digit == int(code[10])
 
@@ -32,17 +32,17 @@ class DemurrageContainer(models.Model):
     bl_id = fields.Many2one('demurrage.bl', string="BL", required=True, ondelete='cascade')
     client_id = fields.Many2one(related='bl_id.client_id', store=True, readonly=True)
     shipping_line_id = fields.Many2one(related='bl_id.shipping_line_id', store=True, readonly=True)
-
+    
     container_type = fields.Selection([
         ('20DV', '20DV'), ('40DV', '40DV'), ('40HC', '40HC'), ('40RF', '40RF')
     ], required=True, string="Tipo")
-
+    
     discharge_date = fields.Date(string="Fecha Descarga", required=True)
     return_date = fields.Date(string="Fecha Devolución")
-
+    
     eir_file = fields.Binary(string="Soporte EIR (PDF/Foto)")
     eir_filename = fields.Char(string="Nombre Archivo EIR")
-
+    
     state = fields.Selection([
         ('draft', 'Borrador'),
         ('unreturned', 'Fuera (En Tránsito)'),
@@ -76,7 +76,7 @@ class DemurrageContainer(models.Model):
     @api.depends('discharge_date', 'return_date', 'container_type', 'shipping_line_id', 'client_id')
     def _compute_demurrage_calculations(self):
         eval_today = self.env.context.get('fixed_today') or fields.Date.today()
-
+        
         for rec in self:
             if not rec.discharge_date or not rec.shipping_line_id or not rec.container_type:
                 rec.days_out = rec.free_days = rec.demurrage_days = 0
@@ -86,7 +86,7 @@ class DemurrageContainer(models.Model):
 
             end_d = rec.return_date or eval_today
             rec.is_estimated = not bool(rec.return_date)
-
+            
             rec.days_out = (end_d - rec.discharge_date).days + 1
 
             domain = [
@@ -96,7 +96,7 @@ class DemurrageContainer(models.Model):
                 '|', ('end_date', '=', False), ('end_date', '>=', rec.discharge_date)
             ]
             rate = self.env['demurrage.rate'].search(domain, limit=1)
-
+            
             if not rate:
                 rec.free_days = rec.demurrage_days = 0
                 rec.shipping_cost_usd = rec.client_cost_usd = 0.0
@@ -106,7 +106,7 @@ class DemurrageContainer(models.Model):
             if rec.client_id:
                 spec = rec.client_id.special_free_days_ids.filtered(lambda x: x.shipping_line_id == rec.shipping_line_id)
                 extra_days = sum(spec.mapped('extra_free_days'))
-
+            
             rec.free_days = rate.free_days + extra_days
             rec.demurrage_days = max(0, rec.days_out - rec.free_days)
 
@@ -122,6 +122,6 @@ class DemurrageContainer(models.Model):
                     total_shipping_usd += day_rate
 
             rec.shipping_cost_usd = total_shipping_usd
-
+            
             margin = rec.client_id.admin_fee_percent if rec.client_id else 10.0
             rec.client_cost_usd = total_shipping_usd * (1.0 + (margin / 100.0))
