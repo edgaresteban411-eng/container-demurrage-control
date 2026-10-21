@@ -118,4 +118,39 @@
     <menuitem id="menu_demurrage_bl" name="Bills of Lading" parent="menu_demurrage_operations" action="action_demurrage_bl" sequence="10"/>
     <menuitem id="menu_demurrage_configuration" name="Configuration" parent="menu_demurrage_root" sequence="20"/>
     <menuitem id="menu_demurrage_rate" name="Shipping Rates" parent="menu_demurrage_configuration" action="action_demurrage_rate" sequence="10"/>
+    <!-- Vista de Búsqueda con Filtros Listos para Operaciones -->
+    <record id="view_demurrage_container_search" model="ir.ui.view">
+        <field name="name">demurrage.container.search</field>
+        <field name="model">demurrage.container</field>
+        <field name="arch" type="xml">
+            <search string="Search Containers">
+                <field name="name"/>
+                <field name="bl_id"/>
+                <field name="client_id"/>
+                <field name="shipping_line_id"/>
+                
+                <filter string="Near Expiration (2 Days)" name="near_expiration" 
+                        domain="[('state','=','unreturned'), ('return_date','=',False), ('days_out','&gt;=', 'free_days' - 2)]"/>
+                <filter string="Expired and Out" name="expired_out" 
+                        domain="[('state','=','unreturned'), ('demurrage_days','&gt;',0)]"/>
+                <filter string="Returned Pending Invoice" name="returned_pending_invoice" 
+                        domain="[('state','=','returned')]"/>
+
+                <group expand="0" string="Group By">
+                    <filter string="Client" name="group_client" context="{'group_by': 'client_id'}"/>
+                    <filter string="Shipping Line" name="group_shipping_line" context="{'group_by': 'shipping_line_id'}"/>
+                    <filter string="State" name="group_state" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_demurrage_container" model="ir.actions.act_window">
+        <field name="name">Containers</field>
+        <field name="res_model">demurrage.container</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_demurrage_container_search"/>
+    </record>
+
+    <menuitem id="menu_demurrage_container" name="Containers" parent="menu_demurrage_operations" action="action_demurrage_container" sequence="20"/>
 </odoo>
